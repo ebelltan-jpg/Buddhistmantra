@@ -30,9 +30,9 @@
     }
     
     @keyframes radiancePulse {
-      0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-      50% { opacity: 1; }
-      100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
     }
     
     @keyframes floatUp {
@@ -42,8 +42,8 @@
       100% { opacity: 0; transform: translateY(-100px) scale(1); }
     }
     
-    .radiance {
-      animation: radiancePulse 1s ease-out;
+    .radiance-flash {
+      animation: radiancePulse 0.6s ease-out;
     }
     
     .float-mantra {
@@ -72,7 +72,7 @@
       box-shadow: 0 0 8px rgba(218, 165, 32, 0.4), inset -2px -2px 4px rgba(0,0,0,0.2);
     }
 
-    /* 佛珠中间的流苏 */
+    /* 佛珠流苏 */
     .tassel {
       position: absolute;
       top: -30px;
@@ -95,6 +95,23 @@
       clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
     }
 
+    /* 莲花按钮 */
+    .lotus-button {
+      width: 180px;
+      height: 180px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .lotus-button:hover {
+      transform: scale(1.1);
+    }
+    
+    .lotus-button:active {
+      transform: scale(0.95);
+    }
+
     @media (max-width: 1024px) {
       .layout-container {
         flex-direction: column !important;
@@ -106,10 +123,6 @@
       }
       .deity-section img {
         width: 300px !important;
-      }
-      .mantra-button-main {
-        width: 200px !important;
-        height: 200px !important;
       }
     }
   </style>
@@ -123,6 +136,9 @@
 
     <!-- 星光背景 -->
     <div id="stars" class="absolute inset-0"></div>
+    
+    <!-- 背后大光明 -->
+    <div id="radiance-bg" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] rounded-full pointer-events-none" style="opacity: 0; background: radial-gradient(circle, rgba(255,215,0,0.4) 0%, rgba(255,215,0,0.2) 40%, transparent 70%);"></div>
     
     <!-- 放射光晕容器 -->
     <div id="radiance-container" class="absolute inset-0 pointer-events-none"></div>
@@ -149,9 +165,15 @@
         </div>
       </div>
 
-      <!-- 中间：法相 -->
-      <div class="deity-section w-2/4 flex items-center justify-center">
-        <div id="deity" class="relative transition-all duration-100" style="opacity: 0.2;">
+      <!-- 中间：咒语 + 法相 -->
+      <div class="deity-section w-2/4 flex flex-col items-center justify-center gap-8">
+        <!-- 咒语在上方 -->
+        <div class="text-amber-100 text-4xl tracking-widest text-center leading-relaxed">
+          嗡。咕噜。莲生。悉地。吽。
+        </div>
+        
+        <!-- 法相 -->
+        <div id="deity" class="relative transition-all duration-300" style="opacity: 0.2;">
           <img src="./師尊-2.png" alt="莲花童子法相" class="w-[500px] h-auto select-none" draggable="false">
         </div>
       </div>
@@ -175,32 +197,50 @@
           <p class="text-amber-100/60 text-sm mb-2">累积持诵</p>
           <p id="total-count" class="text-amber-100 text-3xl">0</p>
         </div>
+
+        <div class="text-center mt-4">
+          <p class="text-amber-100/60 text-sm mb-2">当前进度</p>
+          <p id="current-round" class="text-amber-300 text-2xl">0 / 108</p>
+        </div>
       </div>
     </div>
 
-    <!-- 底部按钮（完整圆形，咒语在里面） -->
+    <!-- 底部莲花按钮 -->
     <div class="absolute bottom-12 left-1/2 -translate-x-1/2 z-20">
-      <button id="mantra-button" class="mantra-button-main w-72 h-72 rounded-full bg-gradient-to-br from-amber-600/40 to-amber-900/40 
-                   border-4 border-amber-400/60 backdrop-blur-md
-                   flex items-center justify-center
-                   shadow-[0_0_60px_rgba(251,191,36,0.5)]
-                   cursor-pointer select-none
-                   transition-all duration-150
-                   hover:scale-105 active:scale-95
-                   hover:shadow-[0_0_80px_rgba(251,191,36,0.7)]">
-        <div class="text-center">
-          <div class="text-amber-100 text-xl leading-loose mb-2">
-            嗡。<br>
-            咕噜。<br>
-            莲生。<br>
-            悉地。<br>
-            吽。
-          </div>
-          <div class="text-amber-300 text-lg font-bold mt-3 tracking-widest">
-            持咒计数
-          </div>
-        </div>
-      </button>
+      <div id="lotus-button" class="lotus-button">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <!-- 外层花瓣 -->
+          <g id="outer-petals">
+            <ellipse cx="100" cy="60" rx="20" ry="45" fill="#f59e0b" opacity="0.8" transform="rotate(0 100 100)"/>
+            <ellipse cx="100" cy="60" rx="20" ry="45" fill="#f59e0b" opacity="0.8" transform="rotate(45 100 100)"/>
+            <ellipse cx="100" cy="60" rx="20" ry="45" fill="#f59e0b" opacity="0.8" transform="rotate(90 100 100)"/>
+            <ellipse cx="100" cy="60" rx="20" ry="45" fill="#f59e0b" opacity="0.8" transform="rotate(135 100 100)"/>
+            <ellipse cx="100" cy="60" rx="20" ry="45" fill="#f59e0b" opacity="0.8" transform="rotate(180 100 100)"/>
+            <ellipse cx="100" cy="60" rx="20" ry="45" fill="#f59e0b" opacity="0.8" transform="rotate(225 100 100)"/>
+            <ellipse cx="100" cy="60" rx="20" ry="45" fill="#f59e0b" opacity="0.8" transform="rotate(270 100 100)"/>
+            <ellipse cx="100" cy="60" rx="20" ry="45" fill="#f59e0b" opacity="0.8" transform="rotate(315 100 100)"/>
+          </g>
+          
+          <!-- 内层花瓣 -->
+          <g id="inner-petals">
+            <ellipse cx="100" cy="70" rx="18" ry="35" fill="#fbbf24" opacity="0.9" transform="rotate(22.5 100 100)"/>
+            <ellipse cx="100" cy="70" rx="18" ry="35" fill="#fbbf24" opacity="0.9" transform="rotate(67.5 100 100)"/>
+            <ellipse cx="100" cy="70" rx="18" ry="35" fill="#fbbf24" opacity="0.9" transform="rotate(112.5 100 100)"/>
+            <ellipse cx="100" cy="70" rx="18" ry="35" fill="#fbbf24" opacity="0.9" transform="rotate(157.5 100 100)"/>
+            <ellipse cx="100" cy="70" rx="18" ry="35" fill="#fbbf24" opacity="0.9" transform="rotate(202.5 100 100)"/>
+            <ellipse cx="100" cy="70" rx="18" ry="35" fill="#fbbf24" opacity="0.9" transform="rotate(247.5 100 100)"/>
+            <ellipse cx="100" cy="70" rx="18" ry="35" fill="#fbbf24" opacity="0.9" transform="rotate(292.5 100 100)"/>
+            <ellipse cx="100" cy="70" rx="18" ry="35" fill="#fbbf24" opacity="0.9" transform="rotate(337.5 100 100)"/>
+          </g>
+          
+          <!-- 莲花中心 -->
+          <circle cx="100" cy="100" r="35" fill="#fde047" opacity="0.95"/>
+          <circle cx="100" cy="100" r="30" fill="#facc15" opacity="0.9"/>
+          
+          <!-- 文字 -->
+          <text x="100" y="105" font-size="20" fill="#78350f" text-anchor="middle" font-weight="bold">持咒</text>
+        </svg>
+      </div>
     </div>
   </div>
 
@@ -213,6 +253,8 @@
     let todayCount = 0;
     let currentBead = 0;
     let beadElements = [];
+    let isChanting = false;
+    let currentRound = 0;
     
     // 初始化星光
     const starsContainer = document.getElementById('stars');
@@ -226,7 +268,7 @@
       starsContainer.appendChild(star);
     }
     
-    // 初始化佛珠（更大、更立体）
+    // 初始化佛珠
     const beadsContainer = document.getElementById('beads-container');
     for (let i = 0; i < TOTAL_BEADS; i++) {
       const angle = (i * 360) / TOTAL_BEADS - 90;
@@ -304,6 +346,7 @@
       document.getElementById('total-count').textContent = totalCount.toLocaleString();
       document.getElementById('today-count').textContent = todayCount.toLocaleString();
       document.getElementById('bead-progress').textContent = `${currentBead}/108`;
+      document.getElementById('current-round').textContent = `${currentRound} / 108`;
       
       const progressPercentage = Math.min((todayCount / DAILY_GOAL) * 100, 100);
       document.getElementById('progress-bar').style.width = progressPercentage + '%';
@@ -315,49 +358,89 @@
       }
     }
     
-    // 点击按钮
-    document.getElementById('mantra-button').addEventListener('click', function() {
-      totalCount++;
-      todayCount++;
-      currentBead = todayCount % TOTAL_BEADS;
-      
-      saveData(totalCount, todayCount);
-      updateDisplay();
-      updateBeads();
-      
+    // 单次诵念动画
+    function singleChant() {
       // 播放音效
       const audio = document.getElementById('audio');
       audio.currentTime = 0;
       audio.play().catch(err => console.log('音效播放失败:', err));
       
-      // 激活法相
-      const deity = document.getElementById('deity');
-      deity.style.opacity = '1';
-      deity.style.transform = 'translateY(-10px)';
+      // 背后大光明闪耀
+      const radianceBg = document.getElementById('radiance-bg');
+      radianceBg.style.opacity = '1';
+      setTimeout(() => {
+        radianceBg.style.opacity = '0';
+      }, 600);
       
       // 显示放射光晕
       const radiance = document.createElement('div');
-      radiance.className = 'radiance absolute top-1/2 left-1/2 w-[1000px] h-[1000px] rounded-full pointer-events-none';
-      radiance.style.background = 'radial-gradient(circle, rgba(255,215,0,0.6) 0%, rgba(255,215,0,0.3) 30%, transparent 70%)';
+      radiance.className = 'radiance-flash absolute top-1/2 left-1/2 w-[1000px] h-[1000px] rounded-full pointer-events-none';
+      radiance.style.background = 'radial-gradient(circle, rgba(255,215,0,0.5) 0%, rgba(255,215,0,0.25) 30%, transparent 60%)';
       document.getElementById('radiance-container').appendChild(radiance);
       
-      setTimeout(() => radiance.remove(), 1000);
+      setTimeout(() => radiance.remove(), 600);
       
       // 创建飘散咒语
       const mantra = document.createElement('div');
-      mantra.className = 'float-mantra absolute text-amber-300 text-2xl pointer-events-none font-bold';
+      mantra.className = 'float-mantra absolute text-amber-300 text-xl pointer-events-none font-bold';
       mantra.textContent = MANTRA_TEXT;
       mantra.style.left = (Math.random() * 30 + 35) + '%';
       mantra.style.top = (Math.random() * 30 + 35) + '%';
       document.getElementById('mantra-container').appendChild(mantra);
       
       setTimeout(() => mantra.remove(), 3000);
+    }
+    
+    // 连续诵念108遍
+    async function chant108Times() {
+      if (isChanting) return;
       
-      // 1秒后恢复静默
+      isChanting = true;
+      currentRound = 0;
+      
+      // 法相显现
+      const deity = document.getElementById('deity');
+      deity.style.opacity = '1';
+      deity.style.transform = 'scale(1.05)';
+      
+      // 背后大光明持续显现
+      const radianceBg = document.getElementById('radiance-bg');
+      radianceBg.style.transition = 'opacity 0.5s';
+      radianceBg.style.opacity = '0.6';
+      
+      for (let i = 0; i < 108; i++) {
+        if (!isChanting) break;
+        
+        totalCount++;
+        todayCount++;
+        currentBead = todayCount % TOTAL_BEADS;
+        currentRound = i + 1;
+        
+        saveData(totalCount, todayCount);
+        updateDisplay();
+        updateBeads();
+        
+        singleChant();
+        
+        // 每次间隔600ms
+        await new Promise(resolve => setTimeout(resolve, 600));
+      }
+      
+      // 108遍完成后，法相恢复半透明
       setTimeout(() => {
         deity.style.opacity = '0.2';
-        deity.style.transform = 'translateY(0)';
+        deity.style.transform = 'scale(1)';
+        radianceBg.style.opacity = '0';
+        currentRound = 0;
+        updateDisplay();
       }, 1000);
+      
+      isChanting = false;
+    }
+    
+    // 点击莲花按钮
+    document.getElementById('lotus-button').addEventListener('click', function() {
+      chant108Times();
     });
     
     // 初始化
